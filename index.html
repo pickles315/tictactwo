@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Tic Tac Two</title>
+<style>
+:root{color-scheme:dark;--bg:#101827;--panel:#192437;--line:#34445e;--muted:#91a0b7;--text:#f4f7fc;--blue:#69b7ff;--orange:#ffad66}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#233451 0%,var(--bg) 58%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;justify-content:center;padding:28px 14px}main{width:min(100%,560px);margin:auto}header{text-align:center;margin-bottom:22px}.eyebrow{color:var(--muted);font-size:.75rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase}h1{font-size:clamp(2rem,8vw,3rem);letter-spacing:-.055em;margin:7px 0 5px}.subtitle{color:var(--muted);margin:0;font-size:.95rem}.panel{background:linear-gradient(160deg,rgba(31,46,68,.97),rgba(23,35,53,.97));border:1px solid rgba(157,180,218,.16);border-radius:24px;padding:clamp(14px,4vw,24px);box-shadow:0 24px 70px #0005}.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.turn{font-weight:750;font-size:.95rem;display:flex;align-items:center;gap:9px}.dot{width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 14px currentColor}.turn.o .dot{background:var(--orange)}.turn.done .dot{background:#9ca9bb}button{font:inherit}.reset{border:1px solid var(--line);background:#263750;color:var(--text);padding:9px 13px;border-radius:11px;font-weight:700;cursor:pointer;transition:background .15s,transform .15s}.reset:hover{background:#314662}.reset:active{transform:scale(.97)}.board-wrap{width:100%;max-width:430px;margin:0 auto;aspect-ratio:1;display:grid;place-items:center}.board{width:100%;height:100%;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(7,minmax(0,1fr));gap:clamp(3px,1vw,6px)}.cell{min-width:0;min-height:0;border-radius:clamp(5px,1.6vw,11px);display:grid;place-items:center;font-weight:900;font-size:clamp(1rem,5.2vw,2rem);line-height:1;user-select:none}.cell.playable{border:1px solid #3a4d69;background:linear-gradient(145deg,#293b56,#202f46);cursor:pointer;transition:border-color .12s,background .12s,transform .12s}.cell.playable:hover:empty{background:#304563;border-color:#6682aa}.cell.playable:active{transform:scale(.94)}.cell.edge{border:1px dashed rgba(133,153,184,.18);background:rgba(17,28,44,.18);color:var(--orange);pointer-events:none}.cell.x{color:var(--blue);text-shadow:0 0 18px #69b7ff35}.cell.o{color:var(--orange);text-shadow:0 0 18px #ffad6635}.cell.winning{border-color:#a7b6ff;background:#35476a;box-shadow:0 0 0 2px #a7b6ff35,0 0 20px #8c9cff30}.legend{display:flex;justify-content:center;gap:22px;color:var(--muted);font-size:.85rem;margin:15px 0 18px}.legend span{display:flex;align-items:center;gap:7px}.legend b{font-size:1.1rem}.legend .xmark{color:var(--blue)}.legend .omark{color:var(--orange)}.scores{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:18px}.score{background:#111d2e80;border:1px solid #34445e80;border-radius:14px;text-align:center;padding:11px 5px}.score strong{display:block;font-size:1.45rem;line-height:1.3}.score span{font-size:.72rem;color:var(--muted);font-weight:750;letter-spacing:.08em;text-transform:uppercase}footer{color:#71819b;text-align:center;font-size:.75rem;margin-top:15px}@media(max-width:390px){body{padding:18px 9px}.panel{padding:12px;border-radius:19px}.board{gap:3px}.scores{gap:6px}.score{padding:9px 3px}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="eyebrow">A little twist on a classic</div><h1>Tic Tac Two</h1><p class="subtitle">Three in a row wins. You're X.</p></header>
+<section class="panel" aria-label="Tic Tac Two game">
+<div class="topline"><div class="turn" id="turn"><i class="dot"></i><span id="status" aria-live="polite">Your turn</span></div><button class="reset" id="newGame" type="button">New game ↻</button></div>
+<div class="board-wrap"><div class="board" id="board" role="grid" aria-label="Game board"></div></div>
+<div class="legend"><span><b class="xmark">X</b> You</span><span><b class="omark">O</b> Computer</span></div>
+<div class="scores"><div class="score"><strong id="xWins">0</strong><span>Your wins</span></div><div class="score"><strong id="draws">0</strong><span>Draws</span></div><div class="score"><strong id="oWins">0</strong><span>Computer wins</span></div></div>
+</section><footer>5 × 5 board · 3 in a row</footer>
+</main>
+<script>
+(() => {
+"use strict";
+const SIZE=7,MIN=1,MAX=5,boardEl=document.getElementById("board"),statusEl=document.getElementById("status"),turnEl=document.getElementById("turn");
+const scoreEls={X:document.getElementById("xWins"),O:document.getElementById("oWins"),D:document.getElementById("draws")};
+let cells=Array(SIZE*SIZE).fill(""),finished=false,scores={X:0,O:0,D:0},winningLine=[];
+const index=(r,c)=>r*SIZE+c,inside=(r,c)=>r>=MIN&&r<=MAX&&c>=MIN&&c<=MAX,lines=[];
+for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)for(const [dr,dc] of [[0,1],[1,0],[1,1],[1,-1]]){const r2=r+2*dr,c2=c+2*dc;if(r2>=0&&r2<SIZE&&c2>=0&&c2<SIZE)lines.push([index(r,c),index(r+dr,c+dc),index(r2,c2)]);}
+function findWin(state,mark){for(const line of lines)if(line.every(i=>state[i]===mark))return line;return null;}
+function emptyInterior(state){const a=[];for(let r=MIN;r<=MAX;r++)for(let c=MIN;c<=MAX;c++){const i=index(r,c);if(!state[i])a.push(i);}return a;}
+function perimeterEmpty(state){const a=[];for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(!inside(r,c)){const i=index(r,c);if(!state[i])a.push(i);}return a;}
+function scoreMove(state,move){const next=state.slice();next[move]="O";let score=0;for(const line of lines){if(!line.includes(move))continue;const o=line.filter(i=>next[i]==="O").length,x=line.filter(i=>next[i]==="X").length;if(x===0)score+=o===3?100000:o===2?90:o===1?12:0;if(o===0)score+=x===2?65:x===1?7:0;}const r=Math.floor(move/SIZE),c=move%SIZE;if(r===3&&c===3)score+=8;else if(r>=2&&r<=4&&c>=2&&c<=4)score+=3;return score;}
+function chooseComputerMove(){for(const i of [...emptyInterior(cells),...perimeterEmpty(cells)]){const test=cells.slice();test[i]="O";if(findWin(test,"O"))return i;}for(const i of emptyInterior(cells)){const test=cells.slice();test[i]="X";if(findWin(test,"X"))return i;}const moves=emptyInterior(cells);if(!moves.length)return -1;let best=moves[0],bestScore=-Infinity;for(const i of moves){const score=scoreMove(cells,i);if(score>bestScore){bestScore=score;best=i;}}return best;}
+function render(){boardEl.innerHTML="";for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){const i=index(r,c),mark=cells[i],isInner=inside(r,c),el=document.createElement(isInner?"button":"div");el.className="cell "+(isInner?"playable":"edge")+(mark?" "+mark.toLowerCase():"")+(winningLine.includes(i)?" winning":"");if(isInner){el.type="button";el.setAttribute("role","gridcell");el.setAttribute("aria-label","Row "+r+", column "+c+": "+(mark||"empty"));el.disabled=!!mark||finished;el.addEventListener("click",()=>play(i));}else el.setAttribute("aria-hidden","true");el.textContent=mark;boardEl.appendChild(el);}Object.keys(scores).forEach(k=>scoreEls[k].textContent=scores[k]);}
+function setStatus(message,mark){statusEl.textContent=message;turnEl.className="turn"+(mark==="O"?" o":finished?" done":"");}
+function endGame(winner,line){finished=true;winningLine=line||[];if(winner==="X"){scores.X++;setStatus("You win!");}else if(winner==="O"){scores.O++;setStatus("Computer wins");}else{scores.D++;setStatus("It's a draw");}render();}
+function play(i){if(finished||cells[i]||!inside(Math.floor(i/SIZE),i%SIZE))return;cells[i]="X";const xLine=findWin(cells,"X");if(xLine){endGame("X",xLine);return;}if(!emptyInterior(cells).length){endGame("D");return;}setStatus("Computer is thinking…","O");render();window.setTimeout(()=>{if(finished)return;const move=chooseComputerMove();if(move<0){endGame("D");return;}cells[move]="O";const oLine=findWin(cells,"O");if(oLine){endGame("O",oLine);return;}if(!emptyInterior(cells).length){endGame("D");return;}setStatus("Your turn","X");render();},280);}
+function newGame(){cells=Array(SIZE*SIZE).fill("");finished=false;winningLine=[];setStatus("Your turn","X");render();}
+document.getElementById("newGame").addEventListener("click",newGame);render();
+})();
+</script>
+</body>
+</html>
