@@ -52,7 +52,7 @@ function endGame(winner,line){finished=true;winningLine=line||[];if(winner==="X"
 function computerTurn(){if(finished)return;setStatus("Computer is thinking…","O");render();window.setTimeout(()=>{if(finished)return;const move=chooseComputerMove();if(move<0){endGame("D");return;}cells[move]="O";const oLine=findWin(cells,"O");if(oLine){endGame("O",oLine);return;}if(!emptyInterior(cells).length){endGame("D");return;}setStatus("Your turn","X");render();},280);}
 function play(i){if(finished||cells[i]||!inside(Math.floor(i/SIZE),i%SIZE))return;cells[i]="X";const xLine=findWin(cells,"X");if(xLine){endGame("X",xLine);return;}if(!emptyInterior(cells).length){endGame("D");return;}computerTurn();}
 function newGame(){cells=Array(SIZE*SIZE).fill("");finished=false;winningLine=[];setStatus("Computer opens…","O");render();computerTurn();}
-document.getElementById("newGame").addEventListener("click",newGame);newGame();
+document.getElementById("newGame").addEventListener("click",newGame);difficultyEl.addEventListener("change",newGame);newGame();
 })();
 </script>
 </body>
